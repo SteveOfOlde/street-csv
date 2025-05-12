@@ -1,0 +1,8 @@
+{
+    "name": "steve/street-csv",
+    "description": "Street Technical Test",
+    "type": "project",
+    "require": {
+        "phpunit/phpunit": "^11.5"
+    }
+}
