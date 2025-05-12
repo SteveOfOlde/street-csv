@@ -1,5 +1,5 @@
 
-To install dependencies using composer run
+To install dependencies using composer, run
 
 `composer install`
 
