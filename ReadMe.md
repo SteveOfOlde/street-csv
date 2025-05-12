@@ -10,3 +10,7 @@ To run change to the public folder and execute
 To run test coverage from the commandline
 
 `vendor/bin/phpunit tests/*`
+
+To run static analysis from the commandline
+
+`vendor/phpstan/phpstan/phpstan analyze ./src/ ./tests/`

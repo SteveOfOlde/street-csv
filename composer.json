@@ -1,8 +1,14 @@
 {
     "name": "steve/street-csv",
-    "description": "Street Technical Test",
+    "description": "Street.co.uk Technical Test",
     "type": "project",
     "require": {
-        "phpunit/phpunit": "^11.5"
+        "phpunit/phpunit": "^11.5",
+        "phpstan/phpstan": "^2.1"
+    },
+    "autoload": {
+        "classmap": [
+            "src/"
+        ]
     }
 }
