@@ -3,6 +3,7 @@
     "description": "Street.co.uk Technical Test",
     "type": "project",
     "require": {
+        "php": ">=8.4",
         "phpunit/phpunit": "^11.5",
         "phpstan/phpstan": "^2.1"
     },
