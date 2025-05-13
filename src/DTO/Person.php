@@ -41,4 +41,8 @@ class Person implements ArrayAccess
     {
         $this->$offset = null;
     }
+
+    public function __toString() {
+        return $this->title.' '. ($this->first_name ?? $this->initial) . ' ' . $this->last_name;
+    }
 }
