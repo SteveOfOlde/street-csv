@@ -10,7 +10,7 @@ class ParserTest extends TestCase
     /**
      * @throws UnRecognisedFormat
      */
-    public function testSinglePersonBasic()
+    public function testSinglePersonBasic(): void
     {
         $parser = new Parser(new Config());
         $results = $parser->parseEntry('Mr Aaron Aaronson');

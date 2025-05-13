@@ -28,7 +28,12 @@ readonly class Parser
         return $this->parsePeople($entry);
     }
 
-    private function contains($haystack, array $needles): bool
+    /**
+     * @param string $haystack
+     * @param string[] $needles
+     * @return bool
+     */
+    private function contains(string $haystack, array $needles): bool
     {
         return array_any($needles, fn($a) => stripos($haystack, $a) !== false);
     }
@@ -62,10 +67,10 @@ readonly class Parser
         }
 
         return [
-            'title' => $title ?? null,
+            'title' => $title,
             'first_name' => $firstName ?? null,
             'initial' => $initial ?? null,
-            'last_name' => $lastName ?? null,
+            'last_name' => $lastName,
         ];
     }
 
@@ -75,6 +80,7 @@ readonly class Parser
     private function parsePeople(string $entry): array
     {
         $entry = str_ireplace($this->config->conjunctions, '', $entry);
+        /** @var list<string> $parts */
         $parts = preg_split("/($this->titlesPattern)/", $entry, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
         $parts = array_filter(array_map(fn($s) => trim($s), $parts));
 
@@ -90,7 +96,7 @@ readonly class Parser
                         continue;
                     }
                     $people[] = [
-                        'title' => $title ?? null,
+                        'title' => $title,
                         'first_name' => null,
                         'initial' => null,
                         'last_name' => $lastName,
@@ -142,11 +148,11 @@ readonly class Parser
 
     private function fixWhitespace(string $entry): string
     {
-        return preg_replace('/\s+/', ' ', trim($entry));
+        return preg_replace('/\s+/', ' ', trim($entry)) ?? '';
     }
 
     private function fixCharacters(string $entry): string
     {
-        return preg_replace('/[^\p{L}\s&-]/ui', '', $entry);
+        return preg_replace('/[^\p{L}\s&-]/ui', '', $entry) ?? '';
     }
 }
