@@ -10,7 +10,7 @@ class Parser
 
     public function __construct(private readonly Config $config)
     {
-        $this->titlesPattern = '\b'.join('\b|\b', $this->config->titles).'\b';
+        $this->titlesPattern = '\b' . join('\b|\b', $this->config->titles) . '\b';
     }
 
     /**
@@ -30,6 +30,13 @@ class Parser
 
     private function contains($haystack, array $needles): bool
     {
+//        echo 'any? ', array_any($needles, function ($a) use ($haystack) {
+//            echo '$haystack : ', $haystack , PHP_EOL;
+//            echo '$a : ', $a , PHP_EOL;
+//            return stripos($haystack, $a) !== false;
+//        });
+//        exit;
+
         return array_any($needles, fn($a) => stripos($haystack, $a) !== false);
     }
 
@@ -77,38 +84,75 @@ class Parser
         $entry = str_ireplace($this->config->conjunctions, '', $entry);
 //        echo '$entry : ',$entry,"\n";
 //        echo '$this->titlesPattern : ',$this->titlesPattern,"\n";
-        $parts = preg_split("/($this->titlesPattern)/", $entry, -1,PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
-        $parts = array_filter(array_map(fn($s)=> trim($s), $parts));
+        $parts = preg_split("/($this->titlesPattern)/", $entry, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+        $parts = array_filter(array_map(fn($s) => trim($s), $parts));
 
         $partCount = count($parts);
 
-        $lastName = array_pop($parts);
-//        echo '$partCount : ', $partCount , "\n";
-//        echo '$lastName : ', $lastName , "\n";
-//        print_r($parts);
-//        ob_flush();
-
         switch ($partCount) {
             case 3:
+                $lastName = array_pop($parts);
+
                 $people = [];
-                foreach($this->config->titles as $title) {
+                foreach ($parts as $title) {
 //                    echo '$title : ', $title, "\n";
-                    if(!in_array($title, $parts)) {
+                    if (!in_array($title, $this->config->titles)) {
                         continue;
                     }
-                    $count = count(array_filter($parts, fn($s)=> strtolower($s) === strtolower($title)));
+//                    $count = count(array_filter($parts, fn($s) => strtolower($s) === strtolower($title)));
 //                    echo '$count : ', $count, "\n";
-                    for ($i = 0; $i < $count; $i++) {
+//                    for ($i = 0; $i < $count; $i++) {
                         $people[] = [
                             'title' => $title ?? null,
                             'first_name' => null,
                             'initial' => null,
                             'last_name' => $lastName,
                         ];
-                    }
+//                    }
                 }
 
                 return $people;
+            case 4:
+
+                [$first, $last] = explode(' ', $parts[1]);
+
+                if (strlen($first) > 1) {
+                    $firstname = $first;
+                    $initial = null;
+                } else {
+                    $firstname = null;
+                    $initial = $first;
+                }
+
+                $person1 = [
+                    'title' => $parts[0] ?? null,
+                    'first_name' => $firstname ?? null,
+                    'initial' => $initial ?? null,
+                    'last_name' => $last,
+                ];
+
+                [$first, $last] = explode(' ', $parts[3]);
+
+                if (strlen($first) > 1) {
+                    $firstname = $first;
+                    $initial = null;
+                } else {
+                    $firstname = null;
+                    $initial = $first;
+                }
+
+                $person2 = [
+                    'title' => $parts[2] ?? null,
+                    'first_name' => $firstname ?? null,
+                    'initial' => $initial ?? null,
+                    'last_name' => $last,
+                ];
+
+//                print_r($parts);
+//                print_r([$person1, $person2]);
+//                exit;
+
+                return [$person1, $person2];
             default:
                 throw new UnRecognisedFormat("Could not determine people format of name '$entry'");
         }
@@ -133,6 +177,6 @@ class Parser
 
     private function fixCharacters(string $entry): string
     {
-        return preg_replace('/[^\p{L}\s]/ui', '', $entry);
+        return preg_replace('/[^\p{L}\s&]/ui', '', $entry);
     }
 }

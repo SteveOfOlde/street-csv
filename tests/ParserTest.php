@@ -133,6 +133,9 @@ class ParserTest extends TestCase
         $parser = new Parser(new Config());
         $results = $parser->parseEntry('Mr and Mr Aaronson');
 
+//        print_r($results);
+//        exit;
+
         $this->assertCount(2, $results);
 
         $this->assertSame('Mr', $results[0]['title']);
@@ -150,6 +153,83 @@ class ParserTest extends TestCase
         $this->assertCount(2, $results);
 
         $this->assertSame('Mrs', $results[0]['title']);
+        $this->assertSame(null, $results[0]['first_name']);
+        $this->assertSame(null, $results[0]['initial']);
+        $this->assertSame('Björnsdóttir', $results[0]['last_name']);
+
+        $this->assertSame('Mrs', $results[1]['title']);
+        $this->assertSame(null, $results[1]['first_name']);
+        $this->assertSame(null, $results[1]['initial']);
+        $this->assertSame('Björnsdóttir', $results[1]['last_name']);
+    }
+
+    /**
+     * @throws UnRecognisedFormat
+     */
+    public function testSameSexCouplesWithDifferentNames(): void
+    {
+        $parser = new Parser(new Config());
+        $results = $parser->parseEntry('Mr Baron Baronson and Mr Aaron Aaronson');
+
+        $this->assertCount(2, $results);
+
+        $this->assertSame('Mr', $results[0]['title']);
+        $this->assertSame('Baron', $results[0]['first_name']);
+        $this->assertSame(null, $results[0]['initial']);
+        $this->assertSame('Baronson', $results[0]['last_name']);
+
+        $this->assertSame('Mr', $results[1]['title']);
+        $this->assertSame('Aaron', $results[1]['first_name']);
+        $this->assertSame(null, $results[1]['initial']);
+        $this->assertSame('Aaronson', $results[1]['last_name']);
+    }
+    /**
+     * @throws UnRecognisedFormat
+     */
+    public function testDoctors(): void
+    {
+        $parser = new Parser(new Config());
+
+        $results = $parser->parseEntry('Dr Baron Baronson');
+
+        $this->assertCount(1, $results);
+
+        $this->assertSame('Dr', $results[0]['title']);
+        $this->assertSame('Baron', $results[0]['first_name']);
+        $this->assertSame(null, $results[0]['initial']);
+        $this->assertSame('Baronson', $results[0]['last_name']);
+
+        $results = $parser->parseEntry('Dr Baron Baronson and Mr Aaron Aaronson');
+
+        $this->assertCount(2, $results);
+
+        $this->assertSame('Dr', $results[0]['title']);
+        $this->assertSame('Baron', $results[0]['first_name']);
+        $this->assertSame(null, $results[0]['initial']);
+        $this->assertSame('Baronson', $results[0]['last_name']);
+
+        $this->assertSame('Mr', $results[1]['title']);
+        $this->assertSame('Aaron', $results[1]['first_name']);
+        $this->assertSame(null, $results[1]['initial']);
+        $this->assertSame('Aaronson', $results[1]['last_name']);
+
+        $results = $parser->parseEntry('Dr B. Björnsdóttir & Mrs Debbie Cartwright');
+        $this->assertCount(2, $results);
+
+        $this->assertSame('Dr', $results[0]['title']);
+        $this->assertSame(null, $results[0]['first_name']);
+        $this->assertSame('B', $results[0]['initial']);
+        $this->assertSame('Björnsdóttir', $results[0]['last_name']);
+
+        $this->assertSame('Mrs', $results[1]['title']);
+        $this->assertSame('Debbie', $results[1]['first_name']);
+        $this->assertSame(null, $results[1]['initial']);
+        $this->assertSame('Cartwright', $results[1]['last_name']);
+
+        $results = $parser->parseEntry('Dr & Mrs Björnsdóttir');
+        $this->assertCount(2, $results);
+        
+        $this->assertSame('Dr', $results[0]['title']);
         $this->assertSame(null, $results[0]['first_name']);
         $this->assertSame(null, $results[0]['initial']);
         $this->assertSame('Björnsdóttir', $results[0]['last_name']);
