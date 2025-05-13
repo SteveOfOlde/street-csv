@@ -8,7 +8,6 @@ class Parser
 {
     public function __construct(private readonly Config $config)
     {
-        
     }
 
     /**
@@ -17,9 +16,10 @@ class Parser
     public function parseEntry(string $entry): array
     {
         $entry = $this->fixWhitespace($entry);
+        $entry = $this->fixCharacters($entry);
 
-        if($this->isOnePerson($entry)){
-            return [ $this->parseOnePerson($entry) ];
+        if ($this->isOnePerson($entry)) {
+            return [$this->parseOnePerson($entry)];
         }
 
         return $this->parsePeople($entry);
@@ -43,13 +43,13 @@ class Parser
         $parts = explode(' ', $entry);
         $partCount = count($parts);
 
-        switch($partCount){
+        switch ($partCount) {
             case 3:
                 $title = $parts[0];
-                $maybeName = preg_replace('/[^A-Z0-9\-]/i', '', $parts[1]);
-                if(strlen($maybeName) > 1){
+                $maybeName = $parts[1];
+                if (strlen($maybeName) > 1) {
                     $firstName = $maybeName;
-                }else{
+                } else {
                     $initial = $maybeName;
                 }
                 $lastName = $parts[2];
@@ -68,16 +68,48 @@ class Parser
 
     private function parsePeople(string $entry): array
     {
+        $entry = str_ireplace($this->config->conjunctions, '', $entry);
+        $parts = preg_split("/(Mrs)/", $entry, -1,PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+        $parts = array_map(fn($s)=> trim($s), $parts);
+
+        $partCount = count($parts);
+
+        $lastName = $parts[$partCount -1];
+        switch ($partCount) {
+            case 3:
+                $people = [];
+                foreach($this->config->titles as $title) {
+                    if(!in_array($title, $parts)) {
+                        continue;
+                    }
+                    $people[] = [
+                        'title' => $title ?? null,
+                        'first_name' => null,
+                        'initial' => null,
+                        'last_name' => $lastName,
+                    ];
+                }
+
+                return $people;
+                break;
+            default:
+                throw new UnRecognisedFormat("Could not determine format of name '$entry'");
+        }
+
+
+
+        ob_flush();
         return [];
     }
 
-    private function matchPatterns($string, $patterns, &$matches = []) {
-        $regex = '/^(' . implode('|', array_map(function($pattern) {
+    private function matchPatterns($string, $patterns, &$matches = [])
+    {
+        $regex = '/^(' . implode('|', array_map(function ($pattern) {
                 return preg_quote($pattern, '/');
             }, $patterns)) . ')[ .]/';
 
 
-        $matched =  preg_match_all($regex, $string, $matches, PREG_OFFSET_CAPTURE);
+        $matched = preg_match_all($regex, $string, $matches, PREG_OFFSET_CAPTURE);
 
         return $matched;
     }
@@ -85,5 +117,10 @@ class Parser
     private function fixWhitespace(string $entry): string
     {
         return preg_replace('/\s+/', ' ', trim($entry));
+    }
+
+    private function fixCharacters(string $entry): string
+    {
+        return preg_replace('/[^\p{L}\s]/ui', '', $entry);
     }
 }

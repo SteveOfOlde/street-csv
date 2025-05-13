@@ -2,17 +2,17 @@
 
 namespace StreetCsv;
 
-class Config
+readonly class Config
 {
     /** @var string[] */
-    public readonly array $titles;
+    public array $titles;
 
     /** @var string[] */
-    public readonly array $conjunctions;
+    public array $conjunctions;
 
     public function __construct()
     {
-        $this->titles = ['Mr', 'Mrs', 'Mister', 'Ms', 'Mx', 'Dr', 'Prof'];
+        $this->titles = ['Mr', 'Mister', 'Mrs', 'Ms', 'Mx', 'Dr', 'Prof'];
         $this->conjunctions = ['and', '&'];
     }
 
