@@ -4,11 +4,11 @@ namespace StreetCsv;
 
 use StreetCsv\Exception\UnRecognisedFormat;
 
-class Parser
+readonly class Parser
 {
-    private readonly string $titlesPattern;
+    private string $titlesPattern;
 
-    public function __construct(private readonly Config $config)
+    public function __construct(private Config $config)
     {
         $this->titlesPattern = '\b' . join('\b|\b', $this->config->titles) . '\b';
     }
@@ -30,13 +30,6 @@ class Parser
 
     private function contains($haystack, array $needles): bool
     {
-//        echo 'any? ', array_any($needles, function ($a) use ($haystack) {
-//            echo '$haystack : ', $haystack , PHP_EOL;
-//            echo '$a : ', $a , PHP_EOL;
-//            return stripos($haystack, $a) !== false;
-//        });
-//        exit;
-
         return array_any($needles, fn($a) => stripos($haystack, $a) !== false);
     }
 
@@ -82,8 +75,6 @@ class Parser
     private function parsePeople(string $entry): array
     {
         $entry = str_ireplace($this->config->conjunctions, '', $entry);
-//        echo '$entry : ',$entry,"\n";
-//        echo '$this->titlesPattern : ',$this->titlesPattern,"\n";
         $parts = preg_split("/($this->titlesPattern)/", $entry, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
         $parts = array_filter(array_map(fn($s) => trim($s), $parts));
 
@@ -95,20 +86,15 @@ class Parser
 
                 $people = [];
                 foreach ($parts as $title) {
-//                    echo '$title : ', $title, "\n";
                     if (!in_array($title, $this->config->titles)) {
                         continue;
                     }
-//                    $count = count(array_filter($parts, fn($s) => strtolower($s) === strtolower($title)));
-//                    echo '$count : ', $count, "\n";
-//                    for ($i = 0; $i < $count; $i++) {
-                        $people[] = [
-                            'title' => $title ?? null,
-                            'first_name' => null,
-                            'initial' => null,
-                            'last_name' => $lastName,
-                        ];
-//                    }
+                    $people[] = [
+                        'title' => $title ?? null,
+                        'first_name' => null,
+                        'initial' => null,
+                        'last_name' => $lastName,
+                    ];
                 }
 
                 return $people;
@@ -148,26 +134,10 @@ class Parser
                     'last_name' => $last,
                 ];
 
-//                print_r($parts);
-//                print_r([$person1, $person2]);
-//                exit;
-
                 return [$person1, $person2];
             default:
                 throw new UnRecognisedFormat("Could not determine people format of name '$entry'");
         }
-    }
-
-    private function matchPatterns($string, $patterns, &$matches = [])
-    {
-        $regex = '/^(' . implode('|', array_map(function ($pattern) {
-                return preg_quote($pattern, '/');
-            }, $patterns)) . ')[ .]/';
-
-
-        $matched = preg_match_all($regex, $string, $matches, PREG_OFFSET_CAPTURE);
-
-        return $matched;
     }
 
     private function fixWhitespace(string $entry): string
