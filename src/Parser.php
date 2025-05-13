@@ -2,6 +2,8 @@
 
 namespace StreetCsv;
 
+use StreetCsv\Exception\UnRecognisedFormat;
+
 class Parser
 {
     public function __construct(private readonly Config $config)
@@ -9,8 +11,13 @@ class Parser
         
     }
 
+    /**
+     * @throws UnRecognisedFormat
+     */
     public function parseEntry(string $entry): array
     {
+        $entry = $this->fixWhitespace($entry);
+
         if($this->isOnePerson($entry)){
             return [ $this->parseOnePerson($entry) ];
         }
@@ -28,22 +35,34 @@ class Parser
         return !$this->contains($entry, $this->config->conjunctions);
     }
 
-    private function parseOnePerson(string $entry)
+    /**
+     * @throws UnRecognisedFormat
+     */
+    private function parseOnePerson(string $entry): array
     {
-        $titles = [];
-        $this->matchPatterns($entry, $this->config->titles, $titles);
-        $titles = array_unique($titles);
+        $parts = explode(' ', $entry);
+        $partCount = count($parts);
 
-        echo '$titles : ';
-        print_r($titles);
-        ob_flush();
-        exit;
+        switch($partCount){
+            case 3:
+                $title = $parts[0];
+                $maybeName = preg_replace('/[^A-Z0-9\-]/i', '', $parts[1]);
+                if(strlen($maybeName) > 1){
+                    $firstName = $maybeName;
+                }else{
+                    $initial = $maybeName;
+                }
+                $lastName = $parts[2];
+                break;
+            default:
+                throw new UnRecognisedFormat("Could not determine format of name '$entry'");
+        }
 
         return [
-            'title' => null,
-            'first_name' => null,
-            'initial' => null,
-            'last_name' => null,
+            'title' => $title ?? null,
+            'first_name' => $firstName ?? null,
+            'initial' => $initial ?? null,
+            'last_name' => $lastName ?? null,
         ];
     }
 
@@ -61,5 +80,10 @@ class Parser
         $matched =  preg_match_all($regex, $string, $matches, PREG_OFFSET_CAPTURE);
 
         return $matched;
+    }
+
+    private function fixWhitespace(string $entry): string
+    {
+        return preg_replace('/\s+/', ' ', trim($entry));
     }
 }
