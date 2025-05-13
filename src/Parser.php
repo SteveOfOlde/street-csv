@@ -6,8 +6,11 @@ use StreetCsv\Exception\UnRecognisedFormat;
 
 class Parser
 {
+    private readonly string $titlesPattern;
+
     public function __construct(private readonly Config $config)
     {
+        $this->titlesPattern = '\b'.join('\b|\b', $this->config->titles).'\b';
     }
 
     /**
@@ -55,7 +58,7 @@ class Parser
                 $lastName = $parts[2];
                 break;
             default:
-                throw new UnRecognisedFormat("Could not determine format of name '$entry'");
+                throw new UnRecognisedFormat("Could not determine single person format of name '$entry'");
         }
 
         return [
@@ -66,40 +69,49 @@ class Parser
         ];
     }
 
+    /**
+     * @throws UnRecognisedFormat
+     */
     private function parsePeople(string $entry): array
     {
         $entry = str_ireplace($this->config->conjunctions, '', $entry);
-        $parts = preg_split("/(Mrs)/", $entry, -1,PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
-        $parts = array_map(fn($s)=> trim($s), $parts);
+//        echo '$entry : ',$entry,"\n";
+//        echo '$this->titlesPattern : ',$this->titlesPattern,"\n";
+        $parts = preg_split("/($this->titlesPattern)/", $entry, -1,PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+        $parts = array_filter(array_map(fn($s)=> trim($s), $parts));
 
         $partCount = count($parts);
 
-        $lastName = $parts[$partCount -1];
+        $lastName = array_pop($parts);
+//        echo '$partCount : ', $partCount , "\n";
+//        echo '$lastName : ', $lastName , "\n";
+//        print_r($parts);
+//        ob_flush();
+
         switch ($partCount) {
             case 3:
                 $people = [];
                 foreach($this->config->titles as $title) {
+//                    echo '$title : ', $title, "\n";
                     if(!in_array($title, $parts)) {
                         continue;
                     }
-                    $people[] = [
-                        'title' => $title ?? null,
-                        'first_name' => null,
-                        'initial' => null,
-                        'last_name' => $lastName,
-                    ];
+                    $count = count(array_filter($parts, fn($s)=> strtolower($s) === strtolower($title)));
+//                    echo '$count : ', $count, "\n";
+                    for ($i = 0; $i < $count; $i++) {
+                        $people[] = [
+                            'title' => $title ?? null,
+                            'first_name' => null,
+                            'initial' => null,
+                            'last_name' => $lastName,
+                        ];
+                    }
                 }
 
                 return $people;
-                break;
             default:
-                throw new UnRecognisedFormat("Could not determine format of name '$entry'");
+                throw new UnRecognisedFormat("Could not determine people format of name '$entry'");
         }
-
-
-
-        ob_flush();
-        return [];
     }
 
     private function matchPatterns($string, $patterns, &$matches = [])
