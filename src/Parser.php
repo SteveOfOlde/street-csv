@@ -177,6 +177,6 @@ class Parser
 
     private function fixCharacters(string $entry): string
     {
-        return preg_replace('/[^\p{L}\s&]/ui', '', $entry);
+        return preg_replace('/[^\p{L}\s&-]/ui', '', $entry);
     }
 }

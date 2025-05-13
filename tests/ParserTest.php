@@ -228,7 +228,7 @@ class ParserTest extends TestCase
 
         $results = $parser->parseEntry('Dr & Mrs Björnsdóttir');
         $this->assertCount(2, $results);
-        
+
         $this->assertSame('Dr', $results[0]['title']);
         $this->assertSame(null, $results[0]['first_name']);
         $this->assertSame(null, $results[0]['initial']);
@@ -238,5 +238,39 @@ class ParserTest extends TestCase
         $this->assertSame(null, $results[1]['first_name']);
         $this->assertSame(null, $results[1]['initial']);
         $this->assertSame('Björnsdóttir', $results[1]['last_name']);
+    }
+
+    /**
+     * @throws UnRecognisedFormat
+     */
+    public function testProfessors(): void
+    {
+        $parser = new Parser(new Config());
+
+        $results = $parser->parseEntry('Prof Baron Baronson');
+
+        $this->assertCount(1, $results);
+
+        $this->assertSame('Prof', $results[0]['title']);
+        $this->assertSame('Baron', $results[0]['first_name']);
+        $this->assertSame(null, $results[0]['initial']);
+        $this->assertSame('Baronson', $results[0]['last_name']);
+    }
+
+    /**
+     * @throws UnRecognisedFormat
+     */
+    public function testDoubleBarrel(): void
+    {
+        $parser = new Parser(new Config());
+
+        $results = $parser->parseEntry('Mrs Evie Björnsdóttir-Aaronson');
+
+        $this->assertCount(1, $results);
+
+        $this->assertSame('Mrs', $results[0]['title']);
+        $this->assertSame('Evie', $results[0]['first_name']);
+        $this->assertSame(null, $results[0]['initial']);
+        $this->assertSame('Björnsdóttir-Aaronson', $results[0]['last_name']);
     }
 }
