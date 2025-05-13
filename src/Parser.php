@@ -2,6 +2,7 @@
 
 namespace StreetCsv;
 
+use StreetCsv\DTO\Person;
 use StreetCsv\Exception\UnRecognisedFormat;
 
 readonly class Parser
@@ -14,6 +15,7 @@ readonly class Parser
     }
 
     /**
+     * @return Person[]
      * @throws UnRecognisedFormat
      */
     public function parseEntry(string $entry): array
@@ -44,9 +46,11 @@ readonly class Parser
     }
 
     /**
+     * @param string $entry
+     * @return Person
      * @throws UnRecognisedFormat
      */
-    private function parseOnePerson(string $entry): array
+    private function parseOnePerson(string $entry): Person
     {
         $parts = explode(' ', $entry);
         $partCount = count($parts);
@@ -66,15 +70,11 @@ readonly class Parser
                 throw new UnRecognisedFormat("Could not determine single person format of name '$entry'");
         }
 
-        return [
-            'title' => $title,
-            'first_name' => $firstName ?? null,
-            'initial' => $initial ?? null,
-            'last_name' => $lastName,
-        ];
+        return new Person($title, $firstName ?? null, $initial ?? null, $lastName);
     }
 
     /**
+     * @return Person[]
      * @throws UnRecognisedFormat
      */
     private function parsePeople(string $entry): array
@@ -95,12 +95,7 @@ readonly class Parser
                     if (!in_array($title, $this->config->titles)) {
                         continue;
                     }
-                    $people[] = [
-                        'title' => $title,
-                        'first_name' => null,
-                        'initial' => null,
-                        'last_name' => $lastName,
-                    ];
+                    $people[] = new Person($title, null, null, $lastName);
                 }
 
                 return $people;
@@ -116,12 +111,7 @@ readonly class Parser
                     $initial = $first;
                 }
 
-                $person1 = [
-                    'title' => $parts[0] ?? null,
-                    'first_name' => $firstname ?? null,
-                    'initial' => $initial ?? null,
-                    'last_name' => $last,
-                ];
+                $person1 = new Person($parts[0] ?? null, $firstname ?? null, $initial ?? null, $last);
 
                 [$first, $last] = explode(' ', $parts[3]);
 
@@ -133,12 +123,7 @@ readonly class Parser
                     $initial = $first;
                 }
 
-                $person2 = [
-                    'title' => $parts[2] ?? null,
-                    'first_name' => $firstname ?? null,
-                    'initial' => $initial ?? null,
-                    'last_name' => $last,
-                ];
+                $person2 = new Person($parts[2] ?? null, $firstname ?? null, $initial ?? null, $last);
 
                 return [$person1, $person2];
             default:

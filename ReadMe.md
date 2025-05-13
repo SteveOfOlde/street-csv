@@ -13,4 +13,4 @@ To run test coverage from the commandline
 
 To run static analysis from the commandline
 
-`vendor/phpstan/phpstan/phpstan analyze ./src/ ./tests/ --level=6`
+`vendor/phpstan/phpstan/phpstan analyze ./src/ ./tests/ --level=9`

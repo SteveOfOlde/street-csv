@@ -2,6 +2,7 @@
 
 use PHPUnit\Framework\TestCase;
 use StreetCsv\Config;
+use StreetCsv\DTO\Person;
 use StreetCsv\Exception\UnRecognisedFormat;
 use StreetCsv\Parser;
 
